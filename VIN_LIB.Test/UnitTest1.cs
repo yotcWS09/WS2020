@@ -27,31 +27,41 @@ namespace VIN_LIB.Test
         {
             Assert.IsFalse(VinInfo.CheckVIN("123456789O1234567"));
         }
+
         [TestMethod]
         public void ChekVin_WMI_false()
         {
             Assert.IsFalse(VinInfo.CheckVIN("BB345678901234567"));
         }
+
         [TestMethod]
         public void ChekVin_VDS9_false()
         {
             Assert.IsFalse(VinInfo.CheckVIN("AA345678V01234567"));
         }
+
         [TestMethod]
-        public void ChekVin_LastForDigits_true()
+        public void ChekVin_LastForDigits_False()
         {
-            Assert.IsTrue(VinInfo.CheckVIN("AA345678X01234563"));
+            Assert.IsFalse(VinInfo.CheckVIN("AA345678X0123456a"));
         }
+
         [TestMethod]
-        public void ChekVin_LastForDigits_false()
+        public void ChekVin_CHK_False()
         {
-            Assert.IsFalse(VinInfo.CheckVIN("AA345678X01234568"));
+            Assert.IsFalse( VinInfo.CheckVIN("JHMCM56567C404453") );
         }
+
         [TestMethod]
         public void ChekVin_CHK_True()
         {
             Assert.IsTrue(VinInfo.CheckVIN("JHMCM56557C404453"));
         }
 
+        [TestMethod]
+        public void GetVINCountry_Country_Japan()
+        {
+            Assert.AreEqual(VinInfo.GetVINCountry("JHMCM56557C404453"), "Япония");
+        }
     }
 }
