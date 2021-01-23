@@ -1,0 +1,8 @@
+.vs
+packages
+VIN_LIB/bin
+VIN_LIB/obj
+TestResults
+VIN_LIB.Test/bin
+VIN_LIB.Test/obj
+
