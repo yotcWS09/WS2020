@@ -8,11 +8,16 @@ namespace VIN_LIB
 {
     internal class Regions
     {
-        public List<string> Codes;
+        public string CodeFrom;
+        public string CodeTo;
         public string Country;
-        public Regions(List<string> codes, string country) {
-            Codes = codes;
+        public Regions(string codeFrom, string codeTo, string country) {
+            CodeFrom = codeFrom;
+            CodeTo = codeTo;
             Country = country;
+        }
+        public Boolean CodeInRegion(string code) {
+            return String.Compare(code, CodeFrom)>=0 & String.Compare(code, CodeTo)<=0;
         }
     }
 
@@ -21,14 +26,8 @@ namespace VIN_LIB
 
         private List<Regions> WMI = new List<Regions>()
         {
-            new Regions(
-                new List<string>(){ "AA", "AB", "AC", "AD", "AE", "AF", "AG", "AH" },
-                "ЮАР"
-            ),
-            new Regions(
-                new List<string>(){ "JA","JH","JT" },
-                "Япония"
-            )
+            new Regions("AA", "AH", "ЮАР"),
+            new Regions("JA", "JT", "Япония")
         };
 
         public Boolean CheckVIN (string vin){
@@ -36,71 +35,76 @@ namespace VIN_LIB
             string DigitsList = "12345678123457923456789";
             var WeightString = new List<int>() { 8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2 };
 
-            if( vin.Length!=17)
-                return false;
-
-            var Vin = vin.ToUpper();
-            
-            var AvailableChers = "0123456789ABCDEFGHJKLMNPRSTUVWXYZ";
-            foreach(char Char in Vin)
+            try
             {
-                if (AvailableChers.IndexOf(Char) == -1)
-                    return false;
-            }
+                if (vin.Length != 17)
+                    throw new Exception("Длина VIN должна быть 17 знаков");
 
-            var found = false;
-            foreach(Regions Region in WMI)
-            {
-                if(Region.Codes.IndexOf(Vin.Substring(0, 2)) >= 0)
+                var Vin = vin.ToUpper();
+
+                var AvailableChers = "0123456789ABCDEFGHJKLMNPRSTUVWXYZ";
+                foreach (char Char in Vin)
                 {
-                    found = true;
-                    break;
+                    if (AvailableChers.IndexOf(Char) == -1)
+                        throw new Exception( String.Format("Недопустимый символ в VIN-номере {0}", Char) );
                 }
-            }
 
-            if (!found)
-                return false;
-
-            /*
-            if (WMI.IndexOf(Vin.Substring(0, 2)) == -1)
-                return false;
-            */
-
-            if ("0123456789X".IndexOf(Vin.Substring(8, 1)) == -1)
-                return false;
-            var LastForDigits = Vin.Substring(Vin.Length - 4);
-            foreach(char Char in LastForDigits)
-            {
-                if (!char.IsDigit(Char))
-                    return false;
-            }
-
-            int CHK = 0;
-
-            for (int i=0; i<17; i++)
-            {
-                if (i != 8)
+                var found = false;
+                foreach (Regions Region in WMI)
                 {
-                    var index = AlphaList.IndexOf(Vin[i]);
-                    if (index >= 0)
+                    if (Region.CodeInRegion(Vin.Substring(0, 2)))
                     {
-                        //CHK += int.Parse(DigitsList[index];
-                        CHK += int.Parse (DigitsList[index].ToString())*WeightString[i];
-                    }
-                    else
-                    {
-                        CHK += int.Parse(Vin[i].ToString()) * WeightString[i];
+                        found = true;
+                        break;
                     }
                 }
-            }
 
-            CHK -= (int)((Math.Ceiling((Decimal)(CHK / 11))) *11);
-            if (CHK == 10)
-            {
-                return Vin[8] == 'x';
-            }
+                if (!found)
+                    throw new Exception(String.Format("Регион VIN-номера не найден {0}", Vin.Substring(0, 2)));
 
-            return Vin[8].ToString() == CHK.ToString();
+                if ("0123456789X".IndexOf(Vin.Substring(8, 1)) == -1)
+                    throw new Exception(String.Format("Контрольная сумма VIN-номера ({0}) вне диапазона 0-9,X", Vin.Substring(8, 1)));
+
+                var LastForDigits = Vin.Substring(Vin.Length - 4);
+                foreach (char Char in LastForDigits)
+                {
+                    if (!char.IsDigit(Char))
+                        throw new Exception("Последние 4 символа VIN-номера должны быть цифрами");
+                }
+
+                int CHK = 0;
+
+                for (int i = 0; i < 17; i++)
+                {
+                    if (i != 8)
+                    {
+                        var index = AlphaList.IndexOf(Vin[i]);
+                        if (index >= 0)
+                        {
+                            //CHK += int.Parse(DigitsList[index];
+                            CHK += int.Parse(DigitsList[index].ToString()) * WeightString[i];
+                        }
+                        else
+                        {
+                            CHK += int.Parse(Vin[i].ToString()) * WeightString[i];
+                        }
+                    }
+                }
+
+                CHK -= (int)((Math.Ceiling((Decimal)(CHK / 11))) * 11);
+                if (CHK == 10)
+                {
+                    return Vin[8] == 'x';
+                }
+
+                if(Vin[8].ToString() != CHK.ToString())
+                    throw new Exception("Не совпала контрольная сумма VIN-номера");
+
+                return true;
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+                return false;
+            }
         }
 
 
@@ -108,7 +112,7 @@ namespace VIN_LIB
         {
             foreach (Regions Region in WMI)
             {
-                if (Region.Codes.IndexOf(vin.ToUpper().Substring(0, 2)) >= 0)
+                if (Region.CodeInRegion( vin.ToUpper().Substring(0, 2) ))
                 {
                     return Region.Country;
                 }
