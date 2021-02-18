@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VIN_LIB
@@ -30,6 +31,8 @@ namespace VIN_LIB
             new Regions("JA", "JT", "Япония")
         };
 
+
+        
         public Boolean CheckVIN (string vin){
             var AlphaList =     "ABCDEFGHJKLMNPRSTUVWXYZ";
             string DigitsList = "12345678123457923456789";
@@ -119,6 +122,45 @@ namespace VIN_LIB
             }
             return "";
         }
+
+
+
+
+
+        public int GetTransportYear(string Vin)
+        {
+            string CodeAlph = "ABCDEFGHJLMNPRSTVWY12345678";
+            var WeightString = new int[27];
+            //string CodeNumb = "12345678";
+            int year = 1979;
+            for (int i = 0; i < WeightString.Length; i++)
+            {
+                year = year + 1;
+                WeightString[i] = year; 
+            }
+
+
+
+            string vis = (Vin.Substring(10 , 8));
+
+            var num = vis.Substring(vis.Length - 4);
+            int dig;
+            bool isNum = int.TryParse(num, out dig);
+            if (isNum)
+            {
+                for (int j=0; j<CodeAlph.Length; j++)
+                {
+                    if (CodeAlph[j]== vis[0])
+                    {
+                        return WeightString[j];
+                    }
+                    
+                }
+            }           
+            return 0;
+        }
+
+
     }
 
 

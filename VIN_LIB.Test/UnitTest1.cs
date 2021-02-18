@@ -63,5 +63,12 @@ namespace VIN_LIB.Test
         {
             Assert.AreEqual(VinInfo.GetVINCountry("JHMCM56557C404453"), "Япония");
         }
+
+        [TestMethod]
+        public void GetTransportYear()
+        {
+            Assert.AreEqual(VinInfo.GetTransportYear("JHMCM56557C4044535"), 1982);
+        }
+
     }
 }
